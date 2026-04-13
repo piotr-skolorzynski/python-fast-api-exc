@@ -27,3 +27,32 @@ BOOKS = [
 @app.get("/books")
 async def get_books():  # w fast api async jest dodawany automatycznie, ale można go dodać ręcznie
     return BOOKS
+
+
+# endpoint z parametrami tak żeby np pobrać jedną książkę, czyli przekazywanie dynamicznych parametrów, tak jak w routingu np angulara
+
+
+# @app.get(
+#     "/books/{dynamic_param:str}"
+# )  # jeśli przekażemy jako liczbę to fast api zamieni go teraz na string
+# async def read_all_books(dynamic_param):
+#     return {"dynamic_param": dynamic_param}
+
+
+# należy pamiętać że kolejność ma znaczenie, tzn jeżeli poniżej mam endpoint kończący się nazwą mybook i pod taką samą nazwą
+# przekażę dynamiczny parametr to poniższy endpoint nigdy nie zostanie wykonany, dlatego najpierw pisz statyczne enpointy później
+# dynamiczne
+
+
+# @app.get(
+#     "/books/mybook"
+# )  # do prawidłowego działania ten endpoint powinen być nad dynamicznym, fast api sprawdza endpointy od góry do dołu (w Express to samo)
+# async def read_all_books():
+#     return {"book_title": "My favorite book!"}
+
+
+@app.get("/books/{book_title}")
+async def read_book(book_title: str):
+    for book in BOOKS:
+        if book.get("title").casefold() == book_title.casefold():
+            return book
