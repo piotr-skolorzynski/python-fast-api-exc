@@ -1,27 +1,31 @@
 from fastapi import FastAPI
 from pydantic import (
     BaseModel,
+    Field,
 )  # pydantic - jest biblioteką pythona do modelowania danych, parsowania i ma efektywne metody ogarniania błędów
+from typing import Optional
 
 app = FastAPI()
 
 
 # składnia klasy zgodna z pydantic
 class Book(BaseModel):
-    id: int
+    id: Optional[int] = (
+        None  # deklarowanie opcjonalnego pola, nusi być od wersji 2 zainicjowane None co oznacza że może być int albo None
+    )
     title: str
     author: str
     description: str
     rating: int
 
 
-# obiekt określający request przychodzący z frontu
+# obiekt określający request przychodzący z frontu, walidacja pól, odbywa się zanim wogóle dojdzie do transformacji requestu do book
 class BookRequest(BaseModel):
     id: int
-    title: str
-    author: str
-    description: str
-    rating: int
+    title: str = Field(min_length=3)
+    author: str = Field(min_length=1)
+    description: str = Field(min_length=1, max_lenght=100)
+    rating: int = Field(gt=0, lt=6)  # gt - grater than, lt - less than (gives 0 to 5)
 
 
 # przerobione obiekty
@@ -182,4 +186,16 @@ async def create_book(
     new_book = Book(
         **book_request.model_dump()
     )  # przekaże do konstruktora rozłożony na klucz wartość obiekt book_request
-    BOOKS.append(new_book)
+    BOOKS.append(find_book_id(new_book))
+
+
+# funkcja pomocnicza do generowania id
+def find_book_id(book: Book):
+    # if len(BOOKS) > 0:
+    #     book.id = BOOKS[-1].id + 1
+    # else:
+    #     book.id = 1
+
+    book.id = 1 if len(BOOKS) == 0 else BOOKS[-1].id + 1
+
+    return book
