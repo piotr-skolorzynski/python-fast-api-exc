@@ -1,11 +1,22 @@
-from fastapi import FastAPI, Body
-from pydantic import BaseModel
+from fastapi import FastAPI
+from pydantic import (
+    BaseModel,
+)  # pydantic - jest biblioteką pythona do modelowania danych, parsowania i ma efektywne metody ogarniania błędów
 
 app = FastAPI()
 
 
 # składnia klasy zgodna z pydantic
 class Book(BaseModel):
+    id: int
+    title: str
+    author: str
+    description: str
+    rating: int
+
+
+# obiekt określający request przychodzący z frontu
+class BookRequest(BaseModel):
     id: int
     title: str
     author: str
@@ -163,8 +174,12 @@ async def read_all_books():
     return BOOKS
 
 
+# enpoint z walidacją
 @app.post("/create-book")
 async def create_book(
-    book_request: Book = Body(),
+    book_request: BookRequest,  # jak podamy taki model jaki chcemy żeby został przesłany to automatycznie zostanie również wyświetlony w swaggerze
 ):  # Body jest opcjonalne, bez niego sobie poradzi
-    BOOKS.append(book_request)
+    new_book = Book(
+        **book_request.model_dump()
+    )  # przekaże do konstruktora rozłożony na klucz wartość obiekt book_request
+    BOOKS.append(new_book)
