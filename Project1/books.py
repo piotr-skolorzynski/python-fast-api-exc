@@ -1,108 +1,108 @@
-from fastapi import FastAPI, Body
+# from fastapi import FastAPI, Body
 
-app = FastAPI()
+# app = FastAPI()
 
-BOOKS = [
-    {"title": "Diuna", "author": "Frank Herbert", "category": "Sci-Fi"},
-    {
-        "title": "Wiedźmin: Ostatnie życzenie",
-        "author": "Andrzej Sapkowski",
-        "category": "Fantasy",
-    },
-    {"title": "Hobbit", "author": "J.R.R. Tolkien", "category": "Fantasy"},
-    {
-        "title": "Morderstwo w Orient Expressie",
-        "author": "Agatha Christie",
-        "category": "Kryminał",
-    },
-    {"title": "Rok 1984", "author": "George Orwell", "category": "Dystopia"},
-    {
-        "title": "Cień wiatru",
-        "author": "Carlos Ruiz Zafón",
-        "category": "Literatura piękna",
-    },
-]
-
-
-@app.get("/books")
-async def get_books():  # w fast api async jest dodawany automatycznie, ale można go dodać ręcznie
-    return BOOKS
+# BOOKS = [
+#     {"title": "Diuna", "author": "Frank Herbert", "category": "Sci-Fi"},
+#     {
+#         "title": "Wiedźmin: Ostatnie życzenie",
+#         "author": "Andrzej Sapkowski",
+#         "category": "Fantasy",
+#     },
+#     {"title": "Hobbit", "author": "J.R.R. Tolkien", "category": "Fantasy"},
+#     {
+#         "title": "Morderstwo w Orient Expressie",
+#         "author": "Agatha Christie",
+#         "category": "Kryminał",
+#     },
+#     {"title": "Rok 1984", "author": "George Orwell", "category": "Dystopia"},
+#     {
+#         "title": "Cień wiatru",
+#         "author": "Carlos Ruiz Zafón",
+#         "category": "Literatura piękna",
+#     },
+# ]
 
 
-# endpoint z parametrami tak żeby np pobrać jedną książkę, czyli przekazywanie dynamicznych parametrów, tak jak w routingu np angulara
+# @app.get("/books")
+# async def get_books():  # w fast api async jest dodawany automatycznie, ale można go dodać ręcznie
+#     return BOOKS
 
 
-# @app.get(
-#     "/books/{dynamic_param:str}"
-# )  # jeśli przekażemy jako liczbę to fast api zamieni go teraz na string
-# async def read_all_books(dynamic_param):
-#     return {"dynamic_param": dynamic_param}
+# # endpoint z parametrami tak żeby np pobrać jedną książkę, czyli przekazywanie dynamicznych parametrów, tak jak w routingu np angulara
 
 
-# należy pamiętać że kolejność ma znaczenie, tzn jeżeli poniżej mam endpoint kończący się nazwą mybook i pod taką samą nazwą
-# przekażę dynamiczny parametr to poniższy endpoint nigdy nie zostanie wykonany, dlatego najpierw pisz statyczne enpointy później
-# dynamiczne
+# # @app.get(
+# #     "/books/{dynamic_param:str}"
+# # )  # jeśli przekażemy jako liczbę to fast api zamieni go teraz na string
+# # async def read_all_books(dynamic_param):
+# #     return {"dynamic_param": dynamic_param}
 
 
-# @app.get(
-#     "/books/mybook"
-# )  # do prawidłowego działania ten endpoint powinen być nad dynamicznym, fast api sprawdza endpointy od góry do dołu (w Express to samo)
-# async def read_all_books():
-#     return {"book_title": "My favorite book!"}
+# # należy pamiętać że kolejność ma znaczenie, tzn jeżeli poniżej mam endpoint kończący się nazwą mybook i pod taką samą nazwą
+# # przekażę dynamiczny parametr to poniższy endpoint nigdy nie zostanie wykonany, dlatego najpierw pisz statyczne enpointy później
+# # dynamiczne
 
 
-@app.get("/books/{book_title}")
-async def read_book(book_title: str):
-    for book in BOOKS:
-        if book.get("title").casefold() == book_title.casefold():
-            return book
+# # @app.get(
+# #     "/books/mybook"
+# # )  # do prawidłowego działania ten endpoint powinen być nad dynamicznym, fast api sprawdza endpointy od góry do dołu (w Express to samo)
+# # async def read_all_books():
+# #     return {"book_title": "My favorite book!"}
 
 
-# endpoint z query params, przekazywane są jako parametry do naszej funkcji w endpoincie, nie podajemy ich w ścieżce dekoratora
+# @app.get("/books/{book_title}")
+# async def read_book(book_title: str):
+#     for book in BOOKS:
+#         if book.get("title").casefold() == book_title.casefold():
+#             return book
 
 
-@app.get("/books/")  # tak zapisana ścieżka daje znać fast api że po / bedą query params
-async def read_category_by_query(category: str):
-    books_to_return = []
-    for book in BOOKS:
-        if book.get("category").casefold() == category.casefold():
-            books_to_return.append(book)
-
-    return books_to_return
+# # endpoint z query params, przekazywane są jako parametry do naszej funkcji w endpoincie, nie podajemy ich w ścieżce dekoratora
 
 
-# przykład enpointu z dynamicznym parametrem oraz query param
-@app.get("/books/{book_author}/")
-async def read_author_category_by_query(book_author: str, category: str):
-    books_to_return = []
-    for book in BOOKS:
-        if (
-            book.get("author").casefold() == book_author.casefold()
-            and book.get("category").casefold() == category.casefold()
-        ):
-            books_to_return.append(book)
+# @app.get("/books/")  # tak zapisana ścieżka daje znać fast api że po / bedą query params
+# async def read_category_by_query(category: str):
+#     books_to_return = []
+#     for book in BOOKS:
+#         if book.get("category").casefold() == category.casefold():
+#             books_to_return.append(book)
 
-    return books_to_return
+#     return books_to_return
 
 
-# POST method
-@app.post("/books/create_book")
-async def create_book(new_book: dict = Body()):
-    BOOKS.append(new_book)
+# # przykład enpointu z dynamicznym parametrem oraz query param
+# @app.get("/books/{book_author}/")
+# async def read_author_category_by_query(book_author: str, category: str):
+#     books_to_return = []
+#     for book in BOOKS:
+#         if (
+#             book.get("author").casefold() == book_author.casefold()
+#             and book.get("category").casefold() == category.casefold()
+#         ):
+#             books_to_return.append(book)
+
+#     return books_to_return
 
 
-# PUT method
-@app.put("/books/update_book")
-async def update_book(updated_book=Body()):
-    for i in range(len(BOOKS)):
-        if BOOKS[i].get("title").casefold() == updated_book.get("title").casefold():
-            BOOKS[i] = updated_book
+# # POST method
+# @app.post("/books/create_book")
+# async def create_book(new_book: dict = Body()):
+#     BOOKS.append(new_book)
 
 
-# DELETE method
-@app.delete("/books/delete_book/{book_title}")
-async def delete_book(book_title: str):
-    for i in range(len(BOOKS)):
-        if BOOKS[i].get("title").casefold() == book_title.casefold():
-            BOOKS.pop(i)
-            break
+# # PUT method
+# @app.put("/books/update_book")
+# async def update_book(updated_book=Body()):
+#     for i in range(len(BOOKS)):
+#         if BOOKS[i].get("title").casefold() == updated_book.get("title").casefold():
+#             BOOKS[i] = updated_book
+
+
+# # DELETE method
+# @app.delete("/books/delete_book/{book_title}")
+# async def delete_book(book_title: str):
+#     for i in range(len(BOOKS)):
+#         if BOOKS[i].get("title").casefold() == book_title.casefold():
+#             BOOKS.pop(i)
+#             break
