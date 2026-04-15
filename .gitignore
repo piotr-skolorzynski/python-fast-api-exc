@@ -1,2 +1,4 @@
 __pycache__
 tips.txt
+.env
+*.db
