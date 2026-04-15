@@ -15,6 +15,7 @@ class Book(BaseModel):
     author: str
     description: str
     rating: int
+    published_date: int
 
 
 # obiekt określający request przychodzący z frontu, walidacja pól, odbywa się zanim wogóle dojdzie do transformacji requestu do book
@@ -28,6 +29,7 @@ class BookRequest(BaseModel):
     author: str = Field(min_length=1)
     description: str = Field(min_length=1, max_lenght=100)
     rating: int = Field(gt=0, lt=6)  # gt - grater than, lt - less than (gives 0 to 5)
+    published_date: int = Field(gt=0)
 
     # jest możliwość bardziej opisowego przedstawienia modelu w swagger:
     model_config = {
@@ -37,6 +39,7 @@ class BookRequest(BaseModel):
                 "author": "Krzysztof Jarzyna",
                 "description": "It is another great book",
                 "rating": 5,
+                "published_date": 2001,
             }
         }
     }
@@ -50,6 +53,7 @@ BOOKS = [
         author="Frank Herbert",
         description="A noble family becomes embroiled in a war for control over the galaxy's most valuable asset.",
         rating=5,
+        published_date=1965,
     ),
     Book(
         id=2,
@@ -57,6 +61,7 @@ BOOKS = [
         author="George Orwell",
         description="A dystopian social science fiction novel and cautionary tale about totalitarianism.",
         rating=5,
+        published_date=1949,
     ),
     Book(
         id=3,
@@ -64,6 +69,7 @@ BOOKS = [
         author="F. Scott Fitzgerald",
         description="The story of the mysteriously wealthy Jay Gatsby and his love for the beautiful Daisy Buchanan.",
         rating=4,
+        published_date=1925,
     ),
     Book(
         id=4,
@@ -71,6 +77,7 @@ BOOKS = [
         author="Harper Lee",
         description="A novel about the serious issues of rape and racial inequality told through the eyes of a child.",
         rating=5,
+        published_date=1960,
     ),
     Book(
         id=5,
@@ -78,6 +85,7 @@ BOOKS = [
         author="J.R.R. Tolkien",
         description="A fantasy novel following the quest of home-loving hobbit Bilbo Baggins to win a share of treasure.",
         rating=5,
+        published_date=1937,
     ),
     Book(
         id=6,
@@ -85,6 +93,7 @@ BOOKS = [
         author="Aldous Huxley",
         description="A prophetic novel that describes a utopian society based on pleasure and social engineering.",
         rating=4,
+        published_date=1932,
     ),
     Book(
         id=7,
@@ -92,6 +101,7 @@ BOOKS = [
         author="J.D. Salinger",
         description="A story about teenager Holden Caulfield's experiences in New York City after being expelled from prep school.",
         rating=3,
+        published_date=1951,
     ),
     Book(
         id=8,
@@ -99,6 +109,7 @@ BOOKS = [
         author="Isaac Asimov",
         description="A mathematician develops a theory to predict the fall of a galactic empire and save knowledge.",
         rating=5,
+        published_date=1951,
     ),
     Book(
         id=9,
@@ -106,6 +117,7 @@ BOOKS = [
         author="William Gibson",
         description="A washed-up computer hacker is hired for one last job that brings him up against a powerful AI.",
         rating=4,
+        published_date=1984,
     ),
     Book(
         id=10,
@@ -113,6 +125,7 @@ BOOKS = [
         author="Andrzej Sapkowski",
         description="A collection of short stories introducing Geralt of Rivia, a monster hunter for hire.",
         rating=5,
+        published_date=1993,
     ),
     Book(
         id=11,
@@ -120,6 +133,7 @@ BOOKS = [
         author="Jane Austen",
         description="A romantic novel of manners that charts the emotional development of protagonist Elizabeth Bennet.",
         rating=4,
+        published_date=1813,
     ),
     Book(
         id=12,
@@ -127,6 +141,7 @@ BOOKS = [
         author="Ray Bradbury",
         description="A novel about a future American society where books are outlawed and 'firemen' burn any that are found.",
         rating=5,
+        published_date=1953,
     ),
     Book(
         id=13,
@@ -134,6 +149,7 @@ BOOKS = [
         author="Andy Weir",
         description="A lone astronaut must save the earth from disaster using only his scientific wits.",
         rating=5,
+        published_date=2021,
     ),
     Book(
         id=14,
@@ -141,6 +157,7 @@ BOOKS = [
         author="Paulo Coelho",
         description="An allegorical novel about a young Andalusian shepherd in his journey to the pyramids of Egypt.",
         rating=4,
+        published_date=1988,
     ),
     Book(
         id=15,
@@ -148,6 +165,7 @@ BOOKS = [
         author="Stephen King",
         description="A family stays in an isolated hotel for the winter where an evil spiritual presence influences the father.",
         rating=4,
+        published_date=1977,
     ),
     Book(
         id=16,
@@ -155,6 +173,7 @@ BOOKS = [
         author="Madeline Miller",
         description="A bold retelling of the life of the daughter of Helios, the sun god, who is banished to a deserted island.",
         rating=5,
+        published_date=2018,
     ),
     Book(
         id=17,
@@ -162,6 +181,7 @@ BOOKS = [
         author="Yuval Noah Harari",
         description="A brief history of humankind, exploring how biology and history have defined us.",
         rating=5,
+        published_date=2011,
     ),
     Book(
         id=18,
@@ -169,6 +189,7 @@ BOOKS = [
         author="Andy Weir",
         description="An astronaut becomes stranded on Mars and must use his ingenuity to survive until rescue.",
         rating=5,
+        published_date=2011,
     ),
     Book(
         id=19,
@@ -176,6 +197,7 @@ BOOKS = [
         author="Agatha Christie",
         description="Famous detective Hercule Poirot investigates a murder on a luxurious train stuck in the snow.",
         rating=4,
+        published_date=1934,
     ),
     Book(
         id=20,
@@ -183,6 +205,7 @@ BOOKS = [
         author="Neil Gaiman",
         description="A story of a war between the Old Gods of mythology and the New Gods of technology and media.",
         rating=4,
+        published_date=2001,
     ),
 ]
 
@@ -190,6 +213,16 @@ BOOKS = [
 @app.get("/books")
 async def read_all_books():
     return BOOKS
+
+
+@app.get("/books/publish")
+async def read_book_by_publish_date(published_date: int):
+    books_to_return = []
+    for book in BOOKS:
+        if book.published_date == published_date:
+            books_to_return.append(book)
+
+    return books_to_return
 
 
 @app.get("/books/{book_id}")
