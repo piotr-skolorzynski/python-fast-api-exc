@@ -10,9 +10,7 @@ app = FastAPI()
 
 # składnia klasy zgodna z pydantic
 class Book(BaseModel):
-    id: Optional[int] = (
-        None  # deklarowanie opcjonalnego pola, nusi być od wersji 2 zainicjowane None co oznacza że może być int albo None
-    )
+    id: int
     title: str
     author: str
     description: str
@@ -21,11 +19,27 @@ class Book(BaseModel):
 
 # obiekt określający request przychodzący z frontu, walidacja pól, odbywa się zanim wogóle dojdzie do transformacji requestu do book
 class BookRequest(BaseModel):
-    id: int
+    # id: Optional[int] = (
+    #     None  # deklarowanie opcjonalnego pola, nusi być od wersji 2 zainicjowane None co oznacza że może być int albo None
+    # )
+    # można ogarnąć to poprze pydantic i zrobić bardziej opisowe w swaggerze, default musi być
+    id: Optional[int] = Field(description="ID is not needed on create", default=None)
     title: str = Field(min_length=3)
     author: str = Field(min_length=1)
     description: str = Field(min_length=1, max_lenght=100)
     rating: int = Field(gt=0, lt=6)  # gt - grater than, lt - less than (gives 0 to 5)
+
+    # jest możliwość bardziej opisowego przedstawienia modelu w swagger:
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "title": "A new book",
+                "author": "Krzysztof Jarzyna",
+                "description": "It is another great book",
+                "rating": 5,
+            }
+        }
+    }
 
 
 # przerobione obiekty
@@ -176,6 +190,13 @@ BOOKS = [
 @app.get("/books")
 async def read_all_books():
     return BOOKS
+
+
+@app.get("/books/{book_id}")
+async def read_book(book_id: int):
+    for book in BOOKS:
+        if book.id == book_id:
+            return book
 
 
 # enpoint z walidacją
