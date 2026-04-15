@@ -4,6 +4,9 @@ from pydantic import (
     Field,
 )  # pydantic - jest biblioteką pythona do modelowania danych, parsowania i ma efektywne metody ogarniania błędów
 from typing import Optional
+from starlette import (
+    status,
+)  # biblioteka Starlette jest bezpośrednią bazą dla popularnego frameworka FastAPI, który dziedziczy po niej większość swojej funkcjonalności HTTP
 
 app = FastAPI()
 
@@ -210,12 +213,14 @@ BOOKS = [
 ]
 
 
-@app.get("/books")
+@app.get(
+    "/books", status_code=status.HTTP_200_OK
+)  # do każdego enpointu możemy dodać status jeśli się powiedzie
 async def read_all_books():
     return BOOKS
 
 
-@app.get("/books/publish")
+@app.get("/books/publish", status_code=status.HTTP_200_OK)
 async def read_book_by_publish_date(published_date: int = Query(gt=0)):
     books_to_return = []
     for book in BOOKS:
@@ -225,7 +230,7 @@ async def read_book_by_publish_date(published_date: int = Query(gt=0)):
     return books_to_return
 
 
-@app.get("/books/{book_id}")
+@app.get("/books/{book_id}", status_code=status.HTTP_200_OK)
 async def read_book(
     book_id: int = Path(gt=0),
 ):  # Path pozwala na walidację parametrów ścieżki
@@ -238,7 +243,7 @@ async def read_book(
     )  # wyrzucenie błędu 404 jeśli nie ma ksiązki o wskazanym id
 
 
-@app.get("/books/")
+@app.get("/books/", status_code=status.HTTP_200_OK)
 async def read_book_by_rating(
     book_rating: int = Query(gt=0, lt=6),
 ):  # walidacja query params
@@ -251,7 +256,7 @@ async def read_book_by_rating(
 
 
 # enpoint z walidacją
-@app.post("/create-book")
+@app.post("/create-book", status_code=status.HTTP_201_CREATED)
 async def create_book(
     book_request: BookRequest,  # jak podamy taki model jaki chcemy żeby został przesłany to automatycznie zostanie również wyświetlony w swaggerze
 ):  # Body jest opcjonalne, bez niego sobie poradzi
@@ -273,7 +278,7 @@ def find_book_id(book: Book):
     return book
 
 
-@app.put("/books/update_book")
+@app.put("/books/update_book", status_code=status.HTTP_204_NO_CONTENT)
 async def update_book(book: BookRequest):
     book_changed = False
     for i in range(len(BOOKS)):
@@ -284,7 +289,7 @@ async def update_book(book: BookRequest):
         raise HTTPException(status_code=404, detail="Item not found")  # error handling
 
 
-@app.delete("/books/{book_id}")
+@app.delete("/books/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_book(
     book_id: int = Path(gt=0),
 ):
