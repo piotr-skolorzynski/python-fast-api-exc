@@ -7,9 +7,10 @@ from dotenv import load_dotenv
 load_dotenv()
 SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 
+# tworzy naszą bazę danych
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)  # tworzy naszą bazę danych
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
