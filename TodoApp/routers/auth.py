@@ -16,7 +16,9 @@ from fastapi.security import (
 from jose import jwt, JWTError
 
 # żeby endpointy z tego pliku były w instancji fastApi z main.py musimy odziedziczyć routing
-router = APIRouter()
+router = APIRouter(
+    prefix="/auth", tags=["auth"]
+)  # prefix - wsztystkie endpointy w tym pliku zaczną się od 'auth' # tags podzieli swagger na tag 'auth' dla lepszej czytelności, pozostałe jeśli nie mają tagów będa pod tagiem default
 
 # konfigurowanie JWT
 load_dotenv()
@@ -27,7 +29,9 @@ ALGORITHM = "HS256"
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # dekodowanie JWT
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_bearer = OAuth2PasswordBearer(
+    tokenUrl="auth/token"
+)  # ścieżka do entpointu, uwzględnia również prefix
 
 
 class CreateUserRequest(BaseModel):
@@ -95,7 +99,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
 
 
 # teraz w endpointach dekoratory piszemy @router i on przekaże endpoint do instancji fastApi z main.py
-@router.post("/auth/", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency, create_user_request: CreateUserRequest):
     create_user_model = Users(
         email=create_user_request.email,
@@ -120,7 +124,10 @@ async def login_for_access_token(
     user = authenticate_user(form_data.username, form_data.password, db)
 
     if not user:
-        return "Failed Authentication"
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate user.",
+        )
 
     token = create_access_token(user.username, user.id, timedelta(minutes=20))
 
