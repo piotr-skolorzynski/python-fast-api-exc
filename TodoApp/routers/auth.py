@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from database import SessionLocal
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from starlette import status
 from pydantic import BaseModel
 from models import Users
@@ -11,8 +11,9 @@ from dotenv import load_dotenv
 import os
 from fastapi.security import (
     OAuth2PasswordRequestForm,
-)  # zapewnia w swagerze możliwość użycia bardziej bezpiecznego formularza wymagającego podania hasła
-from jose import jwt
+    OAuth2PasswordBearer,
+)  # OAuth2PasswordRequestForm zapewnia w swagerze możliwość użycia bardziej bezpiecznego formularza wymagającego podania hasła, OAuth2PasswordBearer - służy do bezpiecznego przesłania tokena w swagerze
+from jose import jwt, JWTError
 
 # żeby endpointy z tego pliku były w instancji fastApi z main.py musimy odziedziczyć routing
 router = APIRouter()
@@ -24,6 +25,9 @@ ALGORITHM = "HS256"
 
 # hashowanie
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# dekodowanie JWT
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl="token")
 
 
 class CreateUserRequest(BaseModel):
@@ -70,6 +74,24 @@ def create_access_token(username: str, user_id: int, expires_delta: timedelta):
     expires = datetime.now(timezone.utc) + expires_delta
     encode.update({"exp": expires})
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+# jeśli korzystamy z JWT to za każdym razem chcemy sprawdzić usera i zweryfikować token
+async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        user_id: int = payload.get("id")
+        if username in None or user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate user.",
+            )
+        return {"username": username, "id": user_id}
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate user."
+        )
 
 
 # teraz w endpointach dekoratory piszemy @router i on przekaże endpoint do instancji fastApi z main.py
