@@ -5,6 +5,7 @@ from models import Todos
 from database import SessionLocal
 from starlette import status
 from pydantic import BaseModel, Field
+from routers.auth import get_current_user
 
 router = APIRouter()
 
@@ -20,6 +21,8 @@ def get_db():
 
 # Depends to jest dependecy injection z biblioteki FastApi, czyli wstrzykujemy tutaj naszą fukcję get_fb żeby nawiązać połączenie do bazki
 db_dependency = Annotated[Session, Depends(get_db)]
+# utworzenie dependency injection do pobrania uwierzytelnionego użytkownika
+user_dependency = Annotated[dict, Depends(get_current_user)]
 
 
 # id jako primary key zostanie dodany automatycznie w bazce
@@ -43,9 +46,17 @@ async def read_todo(db: db_dependency, todo_id: int = Path(gt=0)):
     raise HTTPException(status_code=404, detail="Todo not found.")
 
 
+# zmodyfikowany endpoint przyjmujący również jako argument wstrzykniety poprzez metodę get_current_user użytkownika tzn jego username i id
 @router.post("/todo", status_code=status.HTTP_201_CREATED)
-async def create_todo(db: db_dependency, todo_request: TodoRequest):
-    todo_model = Todos(**todo_request.model_dump())
+async def create_todo(
+    user: user_dependency, db: db_dependency, todo_request: TodoRequest
+):
+    # sprawdzamy czy użytkownik istnieje
+    if user is None:
+        raise HTTPException(status_code=401, detail="Authentication Failed")
+
+    # model został powiększony również o obcy klucz czyli id użytkownika i weźmiemy go właśnie od usera
+    todo_model = Todos(**todo_request.model_dump(), owner_id=user.get("id"))
     db.add(todo_model)  # dodaj do tabeli
     db.commit()  # zapisz
 

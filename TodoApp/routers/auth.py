@@ -12,7 +12,9 @@ import os
 from fastapi.security import (
     OAuth2PasswordRequestForm,
     OAuth2PasswordBearer,
-)  # OAuth2PasswordRequestForm zapewnia w swagerze możliwość użycia bardziej bezpiecznego formularza wymagającego podania hasła, OAuth2PasswordBearer - służy do bezpiecznego przesłania tokena w swagerze
+)  # OAuth2PasswordRequestForm zapewnia w swagerze możliwość użycia bardziej bezpiecznego formularza wymagającego podania hasła,
+
+# OAuth2PasswordBearer - służy do bezpiecznego przesłania tokena w swagerze, ten formularz będzie ukryty pod ikoną kłódki
 from jose import jwt, JWTError
 
 # żeby endpointy z tego pliku były w instancji fastApi z main.py musimy odziedziczyć routing
@@ -86,7 +88,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         user_id: int = payload.get("id")
-        if username in None or user_id is None:
+        if username is None or user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Could not validate user.",
