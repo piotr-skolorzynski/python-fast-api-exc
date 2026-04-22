@@ -43,6 +43,7 @@ class CreateUserRequest(BaseModel):
     last_name: str
     password: str
     role: str
+    phone_number: str
 
 
 # model określający odpowiedź z tokenem oraz dodatkowymi informacjami
@@ -116,6 +117,7 @@ async def create_user(db: db_dependency, create_user_request: CreateUserRequest)
             create_user_request.password
         ),  # wykorzystujem nasz has context z passlib do zaszyfrowania hasła
         is_active=True,
+        phone_number=create_user_request.phone_number,
     )
     # zapisz w bazce
     db.add(create_user_model)
