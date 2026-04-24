@@ -1,5 +1,5 @@
-from database import Base
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from .database import Base
 
 
 # tutaj znajdują się modele rekordów jakie będą zapisywane do bazy danych
