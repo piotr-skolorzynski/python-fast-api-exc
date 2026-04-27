@@ -5,9 +5,6 @@ from fastapi import status
 from .utils import *  # noqa: F403
 from ..routers.users import get_db, get_current_user
 from ..main import app
-from ..models import Users
-from ..routers.auth import bcrypt_context
-from sqlalchemy import text
 
 
 def override_get_db():
@@ -29,26 +26,6 @@ def client():
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
-
-
-@pytest.fixture
-def test_user():
-    user = Users(
-        username="prezio",
-        email="prezio@email.com",
-        first_name="Krzysztof",
-        last_name="Jarzyna",
-        hashed_password=bcrypt_context.hash("testpassword"),
-        role="admin",
-        phone_number="(111)-111-1111",
-    )
-    db = TestingSessionLocal()
-    db.add(user)
-    db.commit()
-    yield user
-    with engine.connect() as connection:
-        connection.execute(text("DELETE FROM users;"))
-        connection.commit()
 
 
 def test_return_user(client, setup_db, test_user):

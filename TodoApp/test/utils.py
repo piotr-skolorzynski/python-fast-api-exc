@@ -5,8 +5,9 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.orm import sessionmaker
 
+from ..routers.auth import bcrypt_context
 from ..database import Base
-from ..models import Todos
+from ..models import Todos, Users
 
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
@@ -47,4 +48,24 @@ def test_todo():
     yield db
     with engine.connect() as connection:  # delete inserted todo during the test
         connection.execute(text("DELETE FROM todos;"))
+        connection.commit()
+
+
+@pytest.fixture
+def test_user():
+    user = Users(
+        username="prezio",
+        email="prezio@email.com",
+        first_name="Krzysztof",
+        last_name="Jarzyna",
+        hashed_password=bcrypt_context.hash("testpassword"),
+        role="admin",
+        phone_number="(111)-111-1111",
+    )
+    db = TestingSessionLocal()
+    db.add(user)
+    db.commit()
+    yield user
+    with engine.connect() as connection:
+        connection.execute(text("DELETE FROM users;"))
         connection.commit()
