@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from ..database import SessionLocal
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from starlette import status
 from pydantic import BaseModel
 from ..models import Users
@@ -16,6 +16,9 @@ from fastapi.security import (
 
 # OAuth2PasswordBearer - służy do bezpiecznego przesłania tokena w swagerze, ten formularz będzie ukryty pod ikoną kłódki
 from jose import jwt, JWTError
+
+# dodanie strony dla auth
+from fastapi.templating import Jinja2Templates
 
 # żeby endpointy z tego pliku były w instancji fastApi z main.py musimy odziedziczyć routing
 router = APIRouter(
@@ -63,6 +66,18 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
+### templates###
+# zapięcie template
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+templates = Jinja2Templates(directory=os.path.join(base_dir, "templates"))
+
+
+@router.get("/login-page")
+def render_login_page(request: Request):
+    return templates.TemplateResponse(request, "login.html", {"request": request})
+
+
+### endpoints###
 # funkcja odpowiedzialna za uwierzytlenienie użytkownika
 def authenticate_user(username: str, password: str, db):
     user = db.query(Users).filter(Users.username == username).first()
