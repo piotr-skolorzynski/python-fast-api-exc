@@ -77,6 +77,11 @@ def render_login_page(request: Request):
     return templates.TemplateResponse(request, "login.html", {"request": request})
 
 
+@router.get("/register-page")
+def render_register_page(request: Request):
+    return templates.TemplateResponse(request, "register.html", {"request": request})
+
+
 ### endpoints###
 # funkcja odpowiedzialna za uwierzytlenienie użytkownika
 def authenticate_user(username: str, password: str, db):
