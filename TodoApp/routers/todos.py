@@ -1,11 +1,19 @@
+import os
 from typing import Annotated
 from sqlalchemy.orm import Session
-from fastapi import Depends, HTTPException, Path, APIRouter
+from fastapi import Depends, HTTPException, Path, APIRouter, Request
 from ..models import Todos
 from ..database import SessionLocal
 from starlette import status
 from pydantic import BaseModel, Field
 from .auth import get_current_user
+from starlette.responses import (
+    RedirectResponse,
+)  # to handle redirect on todo page in case of authentication fails
+from fastapi.templating import Jinja2Templates
+
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+templates = Jinja2Templates(directory=os.path.join(base_dir, "templates"))
 
 router = APIRouter(prefix="/todos", tags=["todos"])
 
@@ -33,6 +41,35 @@ class TodoRequest(BaseModel):
     complete: bool
 
 
+def redirect_to_login():
+    redirect_response = RedirectResponse(
+        url="/auth/login-page", status_code=status.HTTP_302_FOUND
+    )
+    redirect_response.delete_cookie(key="access_token")
+
+    return redirect_response
+
+
+########################### pages ##############################
+# na tej stronie nie chcemy przesyłać tylko html ale również todos do wyświetlenia
+@router.get("/todo-page")
+async def render_todo_page(request: Request, db: db_dependency):
+    try:
+        user = await get_current_user(request.cookies.get("access_token"))
+        if user is None:
+            return redirect_to_login()
+
+        todos = db.query(Todos).filter(Todos.owner_id == user.get("id")).all()
+
+        return templates.TemplateResponse(
+            request, "todo.html", {"request": request, "todos": todos, "user": user}
+        )
+
+    except:
+        return redirect_to_login()
+
+
+############################ enpoints ###########################
 # fetch all todos now belonging to a authenticated user
 @router.get("/", status_code=status.HTTP_200_OK)
 async def read_all(user: user_dependency, db: db_dependency):
