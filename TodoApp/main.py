@@ -1,10 +1,10 @@
-from fastapi import FastAPI, Request
 import os
+from fastapi import FastAPI, Request, status
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from .routers import todos, auth, admin, users
 from .models import Base
 from .database import engine
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
 
 # główny plik gdzie będzie się działa zarządzanie całym fastApi projektu
 
@@ -20,7 +20,6 @@ Base.metadata.create_all(bind=engine)
 # wskazanie folderu z templatami jinja
 # templates = Jinja2Templates(directory="templates") - to nie zadziałało, musiałem złapać ścieżkę do pliku poniżej
 base_dir = os.path.dirname(os.path.realpath(__file__))
-templates = Jinja2Templates(directory=os.path.join(base_dir, "templates"))
 # dodajemy pliki statyczne z css i js
 app.mount(
     "/static", StaticFiles(directory=os.path.join(base_dir, "static")), name="static"
@@ -29,7 +28,7 @@ app.mount(
 
 @app.get("/")
 async def templates_test(request: Request):
-    return templates.TemplateResponse(request, "home.html", {"request": request})
+    return RedirectResponse(url="/todos/todo-page", status_code=status.HTTP_302_FOUND)
 
 
 # health check test
